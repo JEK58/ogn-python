@@ -36,7 +36,7 @@ services:
       PGPASSWORD: postgres
       PGUSER: postgres
       BACKENDHOST: backend
-      BACKENDPORT: 80
+      BACKENDPORT: 8080
 
   backend:
     restart: always
@@ -47,7 +47,8 @@ services:
       - db
       - redis
     ports:
-      - "0.0.0.0:8080:80"
+      - "127.0.0.1:8080:8080"
+    command: "flask run --host=127.0.0.1 -p 8080"
     volumes:
       - ./cups:/cups
     environment:
@@ -69,10 +70,10 @@ services:
     command: "./wait.sh flask gateway run"
     environment:
       SQLALCHEMY_DATABASE_URI: "postgresql://postgres:postgres@db:5432/ogn"
-      CELERY_BROKER_URL: "redis://redis:6379/0"
-      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis"
+      CELERY_RESULT_BACKEND: "redis"
       BACKENDHOST: backend
-      BACKENDPORT: 80
+      BACKENDPORT: 8080
   worker:
     restart: always
     image: ogn:latest
@@ -82,13 +83,13 @@ services:
       - db
       - redis
       - backend
-    command: "./wait.sh celery -A app.collect worker -l info"
+    command: "./wait.sh celery -A celery_app worker -l info"
     environment:
       SQLALCHEMY_DATABASE_URI: "postgresql://postgres:postgres@db:5432/ogn"
       CELERY_BROKER_URL: "redis://redis:6379/0"
       CELERY_RESULT_BACKEND: "redis://redis:6379/0"
       BACKENDHOST: backend
-      BACKENDPORT: 80
+      BACKENDPORT: 8080
   beat:
     restart: always
     image: ogn:latest
@@ -98,13 +99,13 @@ services:
       - db
       - redis
       - backend
-    command: "./wait.sh celery -A app.collect beat -l info"
+    command: "./wait.sh celery -A celery_app beat -l info"
     environment:
       SQLALCHEMY_DATABASE_URI: "postgresql://postgres:postgres@db:5432/ogn"
       CELERY_BROKER_URL: "redis://redis:6379/0"
       CELERY_RESULT_BACKEND: "redis://redis:6379/0"
       BACKENDHOST: backend
-      BACKENDPORT: 80
+      BACKENDPORT: 8080
   flower:
     restart: always
     image: mher/flower
@@ -113,8 +114,8 @@ services:
     depends_on:
       - redis
     ports:
-      - "0.0.0.0:5555:5555"
-    command: "flower --port=5555 -l info --broker=redis://redis:6379/0"
+      - "127.0.0.1:5555:5555"
+    command: "celery --broker=redis://redis:6379/0 flower --port=5555"
 
 networks:
   ogn:

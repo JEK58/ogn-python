@@ -28,6 +28,8 @@ RUN apt update && \
 # ... get the venv from above
 COPY --from=builder-image /opt/venv /opt/venv
 ENV PATH "/opt/venv/bin:$PATH"
+ENV OGN_CONFIG_MODULE "config.py"
+ENV FLASK_APP "ogn_python.py"
 
 # ... get ogn-python
 RUN mkdir /app

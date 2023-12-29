@@ -9,7 +9,7 @@ class BaseConfig:
     CACHE_DEFAULT_TIMEOUT = 300
 
     # Redis stuff
-    REDIS_URL = "redis://localhost:6379/0"
+    REDIS_URL = "redis://redis:6379/0"
 
     # Celery stuff
     BROKER_URL = os.environ.get("BROKER_URL", REDIS_URL)

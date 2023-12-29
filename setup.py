@@ -60,7 +60,9 @@ setup(
         'bokeh==2.4.2',
         'pandas==1.3.5',
         'flydenity==0.1.6',
-        'gunicorn==20.1.0'
+        'gunicorn==20.1.0',
+        'werkzeug>=2.0,<3.0',
+        'SQLAlchemy>=1.0,<2.0',
     ],
     test_require=[
         'pytest==5.0.1',
