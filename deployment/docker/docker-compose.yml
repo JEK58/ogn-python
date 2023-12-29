@@ -117,6 +117,8 @@ services:
       - "127.0.0.1:5555:5555"
     command: "celery --broker=redis://redis:6379/0 flower --port=5555"
 
+project_name: ogn-proxy
+
 networks:
   ogn:
     driver: bridge
