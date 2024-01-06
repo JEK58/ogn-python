@@ -3,7 +3,7 @@ name: ogn-proxy
 services:
   db:
     restart: always
-    image: timescale/timescaledb-postgis:latest-pg15
+    image: timescale/timescaledb-postgis:latest-pg11
     networks:
       - ogn
     volumes:
