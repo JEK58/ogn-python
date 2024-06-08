@@ -11,7 +11,11 @@ from ogn.client import AprsClient
 
 from app import redis_client
 from app.gateway.beacon_conversion import aprs_string_to_message
-from app.gateway.message_handling import receiver_status_message_to_csv_string, receiver_position_message_to_csv_string, sender_position_message_to_csv_string
+from app.gateway.message_handling import (
+    receiver_status_message_to_csv_string,
+    receiver_position_message_to_csv_string,
+    sender_position_message_to_csv_string,
+)
 from app.collect.gateway import transfer_from_redis_to_database
 
 user_cli = AppGroup("gateway")
@@ -19,17 +23,21 @@ user_cli.help = "Connection to APRS servers."
 
 
 @user_cli.command("run")
-@click.option("--aprs_filter", default='')
+@click.option("--aprs_filter", default="a/latN/56.0/lonW/4.5/latS/46.3/lonE/16.4")
 def run(aprs_filter):
     """
     Run the aprs client, parse the incoming data and put it to redis.
     """
 
     import logging
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(name)-17s %(levelname)-8s %(message)s')
+
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s %(name)-17s %(levelname)-8s %(message)s"
+    )
 
     current_app.logger.warning("Start ogn gateway")
-    client = AprsClient(current_app.config['APRS_USER'], aprs_filter)
+    current_app.logger.warning(f"APRS filter: {aprs_filter}")
+    client = AprsClient(current_app.config["APRS_USER"], aprs_filter)
     client.connect()
 
     def insert_into_redis(aprs_string):
@@ -39,21 +47,27 @@ def run(aprs_filter):
             return
 
         # separate between tables (receiver/sender) and aprs_type (status/position)
-        if message['beacon_type'] in ('aprs_receiver', 'receiver'):
-            if message['aprs_type'] == 'status':
-                redis_target = 'receiver_status'
-                csv_string = receiver_status_message_to_csv_string(message, none_character=r'\N')
-            elif message['aprs_type'] == 'position':
-                redis_target = 'receiver_position'
-                csv_string = receiver_position_message_to_csv_string(message, none_character=r'\N')
+        if message["beacon_type"] in ("aprs_receiver", "receiver"):
+            if message["aprs_type"] == "status":
+                redis_target = "receiver_status"
+                csv_string = receiver_status_message_to_csv_string(
+                    message, none_character=r"\N"
+                )
+            elif message["aprs_type"] == "position":
+                redis_target = "receiver_position"
+                csv_string = receiver_position_message_to_csv_string(
+                    message, none_character=r"\N"
+                )
             else:
                 return
         else:
-            if message['aprs_type'] == 'status':
+            if message["aprs_type"] == "status":
                 return  # no interesting data we want to keep
-            elif message['aprs_type'] == 'position':
-                redis_target = 'sender_position'
-                csv_string = sender_position_message_to_csv_string(message, none_character=r'\N')
+            elif message["aprs_type"] == "position":
+                redis_target = "sender_position"
+                csv_string = sender_position_message_to_csv_string(
+                    message, none_character=r"\N"
+                )
             else:
                 return
 
@@ -87,16 +101,18 @@ def transfer():
 
 
 @user_cli.command("printout")
-@click.option("--aprs_filter", default='')
+@click.option("--aprs_filter", default="")
 def printout(aprs_filter):
     """Run the aprs client and just print out the data stream."""
 
     current_app.logger.warning("Start ogn gateway")
-    client = AprsClient(current_app.config['APRS_USER'], aprs_filter=aprs_filter)
+    client = AprsClient(current_app.config["APRS_USER"], aprs_filter=aprs_filter)
     client.connect()
 
     try:
-        client.run(callback=lambda x: print(f"{datetime.utcnow()}: {x}"), autoreconnect=True)
+        client.run(
+            callback=lambda x: print(f"{datetime.utcnow()}: {x}"), autoreconnect=True
+        )
     except KeyboardInterrupt:
         current_app.logger.warning("\nStop ogn gateway")
 
