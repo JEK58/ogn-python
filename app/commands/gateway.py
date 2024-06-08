@@ -23,7 +23,7 @@ user_cli.help = "Connection to APRS servers."
 
 
 @user_cli.command("run")
-@click.option("--aprs_filter", default="")
+@click.option("--aprs_filter", default="a/56.0/4.5/46.3/16.4")
 def run(aprs_filter):
     """
     Run the aprs client, parse the incoming data and put it to redis.
